@@ -1,6 +1,5 @@
 import os
 import math
-from decimal import *
 
 def mainMenu():
     user_input = menuText()
@@ -33,14 +32,30 @@ def menuPublicKey():
     os.system('clear')
     print ('----------- Criptografia RSA -----------\n')
     print ('Gerar chave pública\n')
+    first_prime = 0
+    second_prime = 0
 
-    first_prime = int(input('Informe o primeiro número primo: '))
-    second_prime = int(input('Informe o segundo número primo: '))
+    while ( first_prime * second_prime < 256):
+        first_prime = int(input('Informe o primeiro número primo: '))
+        while (isPrime(first_prime) != True):
+            first_prime = int(input('O número deve ser primo, informe novamente um número: '))
+
+        second_prime = int(input('Informe o segundo número primo: '))
+        while (isPrime(second_prime) != True):
+            second_prime = int(input('O número deve ser primo, informe novamente um número: '))
+
+        if(first_prime * second_prime < 256):
+            print('O produto dos números primos tem que ser maior que 256. Digite novamente os números primos')
+
+    phi = (first_prime - 1) * (second_prime - 1)
     exponent = int(input('Informe o expoente: '))
+    while(mdc(exponent,phi) != 1):
+        exponent = int(input('O expoente deve ser relativamente primo ao produto dos números primos menos 1. Informe novamente o expoente: '))
 
     file_name = input('Informe o nome desejado para o arquivo: ')
     file_name += '.txt'
-    createPublicKey(int(first_prime),int(second_prime),exponent,file_name)
+    createPublicKey(first_prime,second_prime,exponent,file_name)
+
 
 
 def menuEncrypt():
@@ -67,17 +82,23 @@ def menuDecrypt():
     decryptMessage(first_prime,second_prime,exponent,file_name,file_name_decrypt)
 
 def decryptMessage(firstPrime,secondPrime,exponent,fileName,fileDecrypt):
+    D = 2
+    PHI = (firstPrime-1)*(secondPrime-1)
+    
     fileName += '.txt'
     fileDecrypt += '.txt'
 
-    d = ((2*(firstPrime-1)*(secondPrime-1))+1) / exponent
-    n = firstPrime * secondPrime
-    file = open(fileName,'r')
+    while ((D*exponent) % PHI != 1):
+        D+=1
+
+    N = firstPrime * secondPrime
+    file = map(int ,open(fileName).read().split())
+
     decrypt = open(fileDecrypt,'w')
-    for char in file.readlines():
-        t = pow(int(char),int(d),n)
+    for number in file:
+        t = pow(number,int(D),N)
         decrypt.write('%s' % chr(t))
-    file.close()
+
     decrypt.close()
 
     print ('O arquivo foi gerado com sucesso!')
@@ -91,18 +112,22 @@ def encryptMessage(message,publicKey,exponent,fileName):
     d = 2
     for char in message:
         value = pow(ord(char),exponent) % publicKey
-        file.write('%d\n' % value)
+        file.write('%d ' % value)
     file.close()
+
+    print ('O arquivo com a mensagem criptografa foi gerado com sucesso!')
+    saida = input('Pressione ENTER para continuar...')
 
 def createPublicKey(fP,sP,exponent,fileName):
     public_key = fP * sP
     file = open(fileName,'w')
-    file.write('%s %s' % (fP, sP))
+    file.write('%s %s' % (public_key, exponent))
     if os.path.isfile(fileName) == True:
         print ('Arquivo criado com sucesso! Sua chave pública gerada é %s e o expoente utilizado foi %s.' % (public_key, exponent))
     else:
         print ('Não foi possivel criar o arquivo')
     file.close()
+    saida = input('Pressione ENTER para continuar...')
 
 def mdc(a,b):
     if b == 0:
@@ -114,7 +139,7 @@ def isPrime(n):
     if n == 2 or n == 3:
         return True
 
-    for i in range(2, math.sqrt(n)):
+    for i in range(2, int(math.sqrt(n)+1)):
         if n % i == 0:
             return False
 
