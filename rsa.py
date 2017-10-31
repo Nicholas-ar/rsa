@@ -47,16 +47,18 @@ def menuPublicKey():
         if(first_prime * second_prime < 256):
             print('O produto dos números primos tem que ser maior que 256. Digite novamente os números primos')
 
-    phi = (first_prime - 1) * (second_prime - 1)
-    exponent = int(input('Informe o expoente: '))
-    while(mdc(exponent,phi) != 1):
-        exponent = int(input('O expoente deve ser relativamente primo ao produto dos números primos menos 1. Informe novamente o expoente: '))
+    totient = (first_prime - 1) * (second_prime - 1)
+    exponent = int(input('Informe o expoente (Se desejar que seja gerado automaticamente digite -1): '))
+    if exponent != -1:
+        while(mdc(exponent,totient) != 1):
+            exponent = int(input('O expoente deve ser relativamente primo ao produto dos números primos menos 1. Informe novamente o expoente: '))
+    else:
+        exponent = generateExponent()
+        print('O expoente gerado foi %d' % exponent)
 
     file_name = input('Informe o nome desejado para o arquivo: ')
     file_name += '.txt'
     createPublicKey(first_prime,second_prime,exponent,file_name)
-
-
 
 def menuEncrypt():
     os.system('clear')
@@ -83,12 +85,12 @@ def menuDecrypt():
 
 def decryptMessage(firstPrime,secondPrime,exponent,fileName,fileDecrypt):
     D = 2
-    PHI = (firstPrime-1)*(secondPrime-1)
+    totient = (firstPrime-1)*(secondPrime-1)
     
     fileName += '.txt'
     fileDecrypt += '.txt'
 
-    while ((D*exponent) % PHI != 1):
+    while ((D*exponent) % totient != 1):
         D+=1
 
     N = firstPrime * secondPrime
@@ -109,7 +111,7 @@ def decryptMessage(firstPrime,secondPrime,exponent,fileName,fileDecrypt):
 def encryptMessage(message,publicKey,exponent,fileName):
     fileName += '.txt'
     file = open(fileName,'w')
-    d = 2
+
     for char in message:
         value = pow(ord(char),exponent) % publicKey
         file.write('%d ' % value)
@@ -147,5 +149,12 @@ def isPrime(n):
         return True
     else:
         return False
+
+def generateExponent(firstPrime,secondPrime):
+    totient = (firstPrime-1)*(secondPrime-1)
+    exponent = 2
+
+    while(mdc(exponent,totient) != 1):
+        exponent += 1
 
 mainMenu()
