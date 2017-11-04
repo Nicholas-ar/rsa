@@ -53,7 +53,7 @@ def menuPublicKey():
         while(mdc(exponent,totient) != 1):
             exponent = int(input('O expoente deve ser relativamente primo ao produto dos números primos menos 1. Informe novamente o expoente: '))
     else:
-        exponent = generateExponent()
+        exponent = generateExponent(first_prime,second_prime)
         print('O expoente gerado foi %d' % exponent)
 
     file_name = input('Informe o nome desejado para o arquivo: ')
@@ -156,5 +156,6 @@ def generateExponent(firstPrime,secondPrime):
 
     while(mdc(exponent,totient) != 1):
         exponent += 1
+    return exponent
 
 mainMenu()
