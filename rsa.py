@@ -48,17 +48,15 @@ def menuPublicKey():
             print('O produto dos números primos tem que ser maior que 256. Digite novamente os números primos')
 
     totient = (first_prime - 1) * (second_prime - 1)
-    exponent = int(input('Informe o expoente (Se desejar que seja gerado automaticamente digite -1): '))
-    if exponent != -1:
-        while(mdc(exponent,totient) != 1):
-            exponent = int(input('O expoente deve ser relativamente primo ao produto dos números primos menos 1. Informe novamente o expoente: '))
-    else:
-        exponent = generateExponent(first_prime,second_prime)
-        print('O expoente gerado foi %d' % exponent)
 
-    file_name = input('Informe o nome desejado para o arquivo: ')
-    file_name += '.txt'
-    createPublicKey(first_prime,second_prime,exponent,file_name)
+    print('Sugerimos utilizar algum destes expoentes:', end='')
+    generateExponent(totient)
+    exponent = int(input('Informe o expoente desejado:'))
+
+    while(mdc(exponent,totient) != 1):
+        exponent = int(input('O expoente deve ser relativamente primo ao produto dos números primos menos 1. Informe novamente o expoente: '))
+
+    createPublicKey(first_prime,second_prime,exponent)
 
 def menuEncrypt():
     os.system('clear')
@@ -67,8 +65,7 @@ def menuEncrypt():
     message = input('Informe a mensagem que você deseja encriptar:')
     public_key = int(input('Informe a chave pública:'))
     exponent = int(input('Informe o expoente utilizado:'))
-    file_name = input('Informe o nome do arquivo para ser salvo a mensagem criptografada:')
-    encryptMessage(message,public_key,exponent, file_name)
+    encryptMessage(message,public_key,exponent)
 
 def menuDecrypt():
     os.system('clear')
@@ -78,39 +75,32 @@ def menuDecrypt():
     first_prime = int(input('Informe o primeiro número primo utilizado: '))
     second_prime = int(input('Informe o segundo número primo utilizado: '))
     exponent = int(input('Informe o expoente utilizado: '))
+    message = input('Informe a mensagem encriptada:')
+    
+    decryptMessage(first_prime,second_prime,exponent,message)
 
-    file_name = input('Informe o nome do arquivo que esta a mensagem encriptada:')
-    file_name_decrypt = input('Informe o nome do arquivo que deseja armazenar a mensagem:')
-    decryptMessage(first_prime,second_prime,exponent,file_name,file_name_decrypt)
-
-def decryptMessage(firstPrime,secondPrime,exponent,fileName,fileDecrypt):
+def decryptMessage(firstPrime,secondPrime,exponent,message):
     D = 2
     totient = (firstPrime-1)*(secondPrime-1)
-    
-    fileName += '.txt'
-    fileDecrypt += '.txt'
+    N = firstPrime * secondPrime
 
     while ((D*exponent) % totient != 1):
         D+=1
+    
+    decrypt = open('decrypted.txt','w')
+    numbers = message.split()
 
-    N = firstPrime * secondPrime
-    file = map(int ,open(fileName).read().split())
-
-    decrypt = open(fileDecrypt,'w')
-    for number in file:
-        t = pow(number,int(D),N)
+    for number in message.split():
+        t = pow(int(number),int(D),N)
         decrypt.write('%s' % chr(t))
-
-    decrypt.close()
 
     print ('O arquivo foi gerado com sucesso!')
     saida = input('Pressione ENTER para continuar...')
         
 
 
-def encryptMessage(message,publicKey,exponent,fileName):
-    fileName += '.txt'
-    file = open(fileName,'w')
+def encryptMessage(message,publicKey,exponent):
+    file = open('encrypted.txt','w')
 
     for char in message:
         value = pow(ord(char),exponent) % publicKey
@@ -120,15 +110,18 @@ def encryptMessage(message,publicKey,exponent,fileName):
     print ('O arquivo com a mensagem criptografa foi gerado com sucesso!')
     saida = input('Pressione ENTER para continuar...')
 
-def createPublicKey(fP,sP,exponent,fileName):
+def createPublicKey(fP,sP,exponent):
     public_key = fP * sP
-    file = open(fileName,'w')
+    file = open('public_key.txt','w')
+    private = open('private_key.txt', 'w')
     file.write('%s %s' % (public_key, exponent))
-    if os.path.isfile(fileName) == True:
+    private.write('%s %s' % (fP,sP))
+    if os.path.isfile('public_key.txt') == True:
         print ('Arquivo criado com sucesso! Sua chave pública gerada é %s e o expoente utilizado foi %s.' % (public_key, exponent))
     else:
         print ('Não foi possivel criar o arquivo')
     file.close()
+    private.close()
     saida = input('Pressione ENTER para continuar...')
 
 def mdc(a,b):
@@ -150,12 +143,21 @@ def isPrime(n):
     else:
         return False
 
-def generateExponent(firstPrime,secondPrime):
-    totient = (firstPrime-1)*(secondPrime-1)
+def generateExponent(totient):
+    quantity = 10
     exponent = 2
 
-    while(mdc(exponent,totient) != 1):
-        exponent += 1
-    return exponent
+    print('(', end='')
+    while(quantity):
+        while(mdc(exponent,totient) != 1):
+            exponent += 1
+        print('%d' % exponent, end='')
+        exponent+=1
+        if(quantity != 1):
+            print(',',end='')
+        else:
+            print(')')
+        quantity-=1
+
 
 mainMenu()
